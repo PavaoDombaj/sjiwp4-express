@@ -1,7 +1,6 @@
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 
 const jwt = require("jsonwebtoken");
-const { resource } = require("../app");
 
 function getUserJwt(id, email, name, role, expDays = 7) {
     const tokenData = {
@@ -24,15 +23,13 @@ function getUserJwt(id, email, name, role, expDays = 7) {
 // MIDDLEWARE FOR AUTH COOKIE CHECK
 function checkAuthCookie(req, res, next) {
     const token = req.cookies["auth"];
-    
+
     let result = null;
     try {
         result = jwt.verify(token, JWT_SECRET_KEY);
-
-    } catch (error){
+    } catch (error) {
         console.log("ERROR", error);
         next();
-
     }
 
     req.user = result;
