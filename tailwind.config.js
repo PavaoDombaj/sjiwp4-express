@@ -4,6 +4,10 @@ module.exports = {
   theme: {
     extend: {},
   },
-  plugins: [require("daisyui")],
+  plugins: [require('@tailwindcss/forms'), require("daisyui")],
+
+  daisyui: {
+    themes: ["dracula"],
+  },
 }
 
