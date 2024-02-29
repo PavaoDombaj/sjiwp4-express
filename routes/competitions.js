@@ -17,12 +17,30 @@ router.get("/", authRequired, function (req, res, next) {
     res.render("competitions/index", { result: { items: result } });
 });
 
+// GET /competitions/apply/:id
+router.get("/apply/:id", adminRequired, function (req, res, next) {
+    // do validation
+    const result = schema_id.validate(req.params);
 
-// GET /competitions/apply
-router.get("/apply/:id", authRequired, function (req, res, next) {
-    console.log("APPLY");
-    throw new Error("Prijava na natjecanja jos nije dovrseno");
+    const competitionId = req.params.id;
+
+    const checkStmt = db.prepare("SELECT * FROM competitors WHERE id_user = ? AND id_competition = ?;");
+    const alreadyApplyed = checkStmt.get(req.user.sub, competitionId);
+
+    if (alreadyApplyed) {
+        console.log("User is already registered for this competition.");
+        return res.redirect("/competitions");
+    }
+
+    const insertStmt = db.prepare("INSERT INTO competitors (id_user, id_competition, apply_time, score) VALUES (?, ?, ?, ?);");
+    const insertResult = insertStmt.run(req.user.sub, competitionId, Date.now(), 0);
+
+    // dodaj zavrsetak
+    //res.redirect("/competitions");
 });
+
+
+
 
 // SCHEMA id
 const schema_id = Joi.object({
