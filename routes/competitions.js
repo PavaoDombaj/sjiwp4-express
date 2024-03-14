@@ -17,12 +17,44 @@ router.get("/", authRequired, function (req, res, next) {
     res.render("competitions/index", { result: { items: result } });
 });
 
+// GET /competitions/view/:id
+router.get("/view/:id", authRequired, function (req, res, next) {
+    // do validation
+    const resultValidation = schema_id.validate(req.params);
+
+    const competitionId = req.params.id;
+
+    const stmt = db.prepare(`
+        SELECT u.name, competitors.score, competitors.apply_time, competitors.score, competitors.id
+        FROM competitors, users u
+        WHERE competitors.id_user = u.id
+        ORDER BY competitors.score
+    `);
+    const result = stmt.all();
+
+    res.render("competitions/view", { result: { items: result } });
+});
+
+// SCHEMA score
+const schema_score = Joi.object({
+    id: Joi.number().integer().positive().required()
+});
+
+router.post('/competition/updatescore/:id', adminRequired, (req, res) => {
+    const competitionId = req.params.id;
+    const updatedScore = req.body.score;
+    console.log(competitionId, updatedScore);
+    res.redirect('/');
+});
+
+
 // GET /competitions/apply/:id
-router.get("/apply/:id", adminRequired, function (req, res, next) {
+router.get("/apply/:id", authRequired, function (req, res, next) {
     // do validation
     const result = schema_id.validate(req.params);
 
     const competitionId = req.params.id;
+
 
     const checkStmt = db.prepare("SELECT * FROM competitors WHERE id_user = ? AND id_competition = ?;");
     const alreadyApplyed = checkStmt.get(req.user.sub, competitionId);
@@ -33,10 +65,10 @@ router.get("/apply/:id", adminRequired, function (req, res, next) {
     }
 
     const insertStmt = db.prepare("INSERT INTO competitors (id_user, id_competition, apply_time, score) VALUES (?, ?, ?, ?);");
-    const insertResult = insertStmt.run(req.user.sub, competitionId, Date.now(), 0);
+    const insertResult = insertStmt.run(req.user.sub, competitionId, new Date().toISOString(), 0);
 
     // dodaj zavrsetak
-    //res.redirect("/competitions");
+    //res.render("/competitions/view/:id"); ///neradi
 });
 
 
