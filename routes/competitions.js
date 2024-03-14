@@ -23,13 +23,14 @@ router.get("/view/:id", authRequired, function (req, res, next) {
     const resultValidation = schema_id.validate(req.params);
 
     const competitionId = req.params.id;
+    console.log(competitionId)
 
     const stmt = db.prepare(`
         SELECT u.name, competitors.score, competitors.apply_time, competitors.score, competitors.id
         FROM competitors, users u
         WHERE competitors.id_user = u.id
         ORDER BY competitors.score
-    `);
+    `); ///        WHERE competitors.id_competition = ${competitionId}
     const result = stmt.all();
 
     res.render("competitions/view", { result: { items: result } });
@@ -37,15 +38,49 @@ router.get("/view/:id", authRequired, function (req, res, next) {
 
 // SCHEMA score
 const schema_score = Joi.object({
-    id: Joi.number().integer().positive().required()
+    /*id: Joi.number().integer().positive().required(),*/
+    score: Joi.number().integer().positive().required(),
+});
+// POST /competitions/updatescore/:id
+router.post('/updatescore/:id', adminRequired, (req, res, next) => {
+    const result = schema_score.validate(req.body);
+
+    console.log(req.body, req.params, result);
+
+    if (result.error) {
+        res.render("competitions");
+        return;
+    }
+
+    const stmt = db.prepare("UPDATE competitors SET score = ? WHERE id = ?");
+    const updateResult = stmt.run(req.body.score, req.params.id);
+
+    if (updateResult.changes && updateResult.changes === 1) {
+        res.redirect("/competitions")
+    } else {
+        res.render("competitions/form", { result: { database_error: true } });
+    }
 });
 
-router.post('/competition/updatescore/:id', adminRequired, (req, res) => {
-    const competitionId = req.params.id;
-    const updatedScore = req.body.score;
-    console.log(competitionId, updatedScore);
-    res.redirect('/');
+// GET /competitions/delete/competitor/:Id
+router.get("/delete/competitor/:id", adminRequired, function (req, res, next) {
+    // do validation
+    const result = schema_id.validate(req.params);
+    console.log(result)
+    if (result.error) {
+        throw new Error("Neispravan poziv");
+    }
+
+    const stmt = db.prepare("DELETE FROM competitors WHERE id = ?;");
+    const deleteResult = stmt.run(req.params.id);
+
+    if (!deleteResult.changes || deleteResult.changes !== 1) {
+        throw new Error("Operacija nije uspjela");
+    }
+
+    res.redirect("/competitions");
 });
+
 
 
 // GET /competitions/apply/:id

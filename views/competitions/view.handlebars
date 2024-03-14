@@ -26,14 +26,14 @@
                     </td>
                     <td class="flex flex-wrap gap-2">
                         {{#if ../user.is_admin }}
-                        <form method="post" action="/competition/updatescore/{{this.id}}">
+                        <form method="post" action="/competitions/updatescore/{{this.id}}">
                             <input name="score"
-                                class="shadow appearance-none border rounded w-[50px] h-[36px] text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="score" type="text" placeholder="">
+                                class="shadow appearance-none border rounded w-[70px] h-[36px] text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="score" type="number" placeholder="">
                             <button type="submit" class="btn btn-accent btn-sm">Upisi bodove</button>
                         </form>
                         <!-- <a href="/competitions/edit/{{this.id}}" class="btn btn-accent btn-xs">Upisi bodove</a> -->
-                        <a href="" class="btn btn-error btn-sm">Obrisi prijavu</a>
+                        <a href="/competitions/delete/competitor/{{this.id}}" class="btn btn-error btn-sm">Obrisi prijavu</a>
                         {{/if}}
                     </td>
 

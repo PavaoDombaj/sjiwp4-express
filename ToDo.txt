@@ -1,0 +1,7 @@
+15.2 gumb uredi i brisi samo za administratore, prijava gumb i tablica za prijave natjecnaja
+
+29.2 gumb prijava, napravi prijavu na natjecanje, ako je prijavljen ispisi vec ste prijavljeni
+
+7.3 ispisavnje svih prijava za natjecanje, gumb za unos bodova(administrator), sortiranje prema bodovima
+
+14.3 popraviti brisanje natjecanja, prvo obrisi natjecatelje onda natjecanje
