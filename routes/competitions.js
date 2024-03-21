@@ -56,7 +56,11 @@ router.get("/izvjesce/:id", authRequired, function (req, res, next) {
         ORDER BY c.score DESC
     `);
 
-    result = stmt.all(competitionId)
+    const result = stmt.all(competitionId).map((item, index) => ({
+        ...item,
+        position: index + 1,
+        showHorizontalLine: index === 2  // Set to true when index reaches 2 (third position)
+    }));
 
     const stmtComp = db.prepare(`
             SELECT name, apply_till
