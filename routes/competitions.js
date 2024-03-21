@@ -4,6 +4,7 @@ const { authRequired, adminRequired } = require("../services/auth.js");
 const Joi = require("joi");
 const { db } = require("../services/db.js");
 
+
 // GET /competitions
 router.get("/", authRequired, function (req, res, next) {
     const stmt = db.prepare(`
@@ -28,13 +29,50 @@ router.get("/view/:id", authRequired, function (req, res, next) {
     const stmt = db.prepare(`
         SELECT u.name, competitors.score, competitors.apply_time, competitors.score, competitors.id
         FROM competitors, users u
-        WHERE competitors.id_user = u.id
-        ORDER BY competitors.score
+        WHERE competitors.id_user = u.id AND competitors.id_competition = ?
+        ORDER BY competitors.score DESC
     `); ///        WHERE competitors.id_competition = ${competitionId}
-    const result = stmt.all();
+    const result = stmt.all(req.params.id);
 
-    res.render("competitions/view", { result: { items: result } });
+    console.log(result)
+
+    res.render("competitions/view", { result: { items: result }, competitionId: competitionId });
 });
+
+
+router.get("/izvjesce/:id", authRequired, function (req, res, next) {
+    // do validation
+    const resultValidation = schema_id.validate(req.params);
+
+    const competitionId = req.params.id;
+
+    console.log(competitionId);
+
+    const stmt = db.prepare(`
+        SELECT u.name, c.score, c.apply_time, c.score, c.id
+        FROM competitors c
+        INNER JOIN users u ON c.id_user = u.id
+        WHERE c.id_competition = ?
+        ORDER BY c.score DESC
+    `);
+
+    result = stmt.all(competitionId)
+
+    const stmtComp = db.prepare(`
+            SELECT name, apply_till
+            FROM competitions
+            WHERE id = ?
+        `);
+
+    const natjecanje = stmtComp.get(competitionId)
+    console.log(natjecanje)
+
+    res.render("competitions/izvjesce", { result: { items: result }, natjecanje: natjecanje });
+});
+
+
+
+
 
 // SCHEMA score
 const schema_score = Joi.object({
@@ -44,6 +82,7 @@ const schema_score = Joi.object({
 // POST /competitions/updatescore/:id
 router.post('/updatescore/:id', adminRequired, (req, res, next) => {
     const result = schema_score.validate(req.body);
+
 
     console.log(req.body, req.params, result);
 
@@ -56,9 +95,9 @@ router.post('/updatescore/:id', adminRequired, (req, res, next) => {
     const updateResult = stmt.run(req.body.score, req.params.id);
 
     if (updateResult.changes && updateResult.changes === 1) {
-        res.redirect("/competitions")
+        res.redirect('/competitions');
     } else {
-        res.render("competitions/form", { result: { database_error: true } });
+        res.render("/competitions", { result: { database_error: true } });
     }
 });
 
@@ -88,7 +127,7 @@ router.get("/apply/:id", authRequired, function (req, res, next) {
     // do validation
     const result = schema_id.validate(req.params);
 
-    const competitionId = req.params.id;
+    const competitionId = parseInt(req.params.id);
 
 
     const checkStmt = db.prepare("SELECT * FROM competitors WHERE id_user = ? AND id_competition = ?;");
@@ -104,6 +143,7 @@ router.get("/apply/:id", authRequired, function (req, res, next) {
 
     // dodaj zavrsetak
     //res.render("/competitions/view/:id"); ///neradi
+    return res.redirect("/competitions");
 });
 
 
@@ -121,6 +161,14 @@ router.get("/delete/:id", adminRequired, function (req, res, next) {
     if (result.error) {
         throw new Error("Neispravan poziv");
     }
+
+    const stmtCompetitors = db.prepare("DELETE FROM competitors WHERE id_competition = ?;");
+    const deleteResultCompetitors = stmtCompetitors.run(req.params.id);
+
+    if (!deleteResultCompetitors.changes || deleteResultCompetitors.changes !== 1) {
+        throw new Error("Operacija brisanja natjecatelja nije uspjela");
+    }
+
 
     const stmt = db.prepare("DELETE FROM competitions WHERE id = ?;");
     const deleteResult = stmt.run(req.params.id);
