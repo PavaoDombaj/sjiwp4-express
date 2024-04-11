@@ -13,6 +13,11 @@
                 result.edit}}x-text="'{{result.edit.description}}'" {{/if}}>
             </textarea>
         </div>
+        <div class="pb-2 flex flex-col" x-data="{}">
+            <label>Team size</label>
+            <input type="number" name="team_size" class="bg-neutral" required="" {{#if
+                result.edit}}value="{{result.edit.team_size}}" {{/if}} />
+        </div>
         <div class="pb-2 flex flex-col">
             <label>Rok prijave</label>
             <input type="datetime-local" name="apply_till" class="bg-neutral" required="" {{#if

@@ -11,6 +11,7 @@
                     <th>ID</th>
                     <th>Ime</th>
                     <th>Opis</th>
+                    <th>Team size:</th>
                     <th>Rok prijave</th>
                     <th>Autor</th>
                     <th>Mogućnosti</th>
@@ -27,6 +28,7 @@
                             {{this.description}}
                         </div>
                     </td>
+                    <td>{{this.team_size}}</td>
                     <td x-data="{}">
                         <span x-text="new Date('{{this.apply_till}}').toLocaleString()"></span>
                     </td>

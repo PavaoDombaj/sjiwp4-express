@@ -8,7 +8,7 @@ const { db } = require("../services/db.js");
 // GET /competitions
 router.get("/", authRequired, function (req, res, next) {
     const stmt = db.prepare(`
-        SELECT c.id, c.name, c.description, u.name AS author, c.apply_till
+        SELECT c.id, c.name, c.description, c.team_size, u.name AS author, c.apply_till
         FROM competitions c, users u
         WHERE c.author_id = u.id
         ORDER BY c.apply_till
@@ -132,22 +132,33 @@ router.get("/apply/:id", authRequired, function (req, res, next) {
     const result = schema_id.validate(req.params);
 
     const competitionId = parseInt(req.params.id);
+    //AKO JE TEAM SIZE = 1 ONDA NEKA NAPRAVI OVO ISPOD AKO NIJE RENDERAJ NOVU RUTU ZA PRIJAVLJIVANJE TIMOVA
+    const checkTeamSize = db.prepare("SELECT team_size FROM competitions WHERE id = ?;")
+    const teamSize = checkTeamSize.get(competitionId)
+    console.log("TEAM SIZE: " + teamSize.team_size)
+    if (teamSize.team_size === 1) {
+        const checkStmt = db.prepare("SELECT * FROM competitors WHERE id_user = ? AND id_competition = ?;");
+        const alreadyApplyed = checkStmt.get(req.user.sub, competitionId);
 
+        if (alreadyApplyed) {
+            console.log("User is already registered for this competition.");
+            return res.redirect("/competitions");
+        }
 
-    const checkStmt = db.prepare("SELECT * FROM competitors WHERE id_user = ? AND id_competition = ?;");
-    const alreadyApplyed = checkStmt.get(req.user.sub, competitionId);
+        const insertStmt = db.prepare("INSERT INTO competitors (id_user, id_competition, apply_time, score) VALUES (?, ?, ?, ?);");
+        const insertResult = insertStmt.run(req.user.sub, competitionId, new Date().toISOString(), 0);
 
-    if (alreadyApplyed) {
-        console.log("User is already registered for this competition.");
-        return res.redirect("/competitions");
+        res.redirect("/competitions")
+
+    }else{
+        const checkCompetition = db.prepare("SELECT * FROM competitions WHERE id = ?;")
+        
+        const competitionInfo = checkCompetition.get(competitionId)
+        console.log(competitionInfo)
+        
+        res.render("competitions/teamApply", { result: {competitionInfo: competitionInfo } });
     }
 
-    const insertStmt = db.prepare("INSERT INTO competitors (id_user, id_competition, apply_time, score) VALUES (?, ?, ?, ?);");
-    const insertResult = insertStmt.run(req.user.sub, competitionId, new Date().toISOString(), 0);
-
-    // dodaj zavrsetak
-    //res.render("/competitions/view/:id"); ///neradi
-    return res.redirect("/competitions");
 });
 
 
@@ -207,6 +218,7 @@ const schema_edit = Joi.object({
     name: Joi.string().min(3).max(50).required(),
     description: Joi.string().min(3).max(1000).required(),
     apply_till: Joi.date().iso().required(),
+    team_size: Joi.number().integer().positive().required(),
     id: Joi.number().integer().positive().required()
 
 });
@@ -221,8 +233,8 @@ router.post("/edit", adminRequired, function (req, res, next) {
         return;
     }
 
-    const stmt = db.prepare("UPDATE competitions SET name = ?, description = ?, apply_till = ? WHERE id = ?");
-    const updateResult = stmt.run(req.body.name, req.body.description, req.body.apply_till, req.body.id);
+    const stmt = db.prepare("UPDATE competitions SET name = ?, description = ?, team_size =?,  apply_till = ? WHERE id = ?");
+    const updateResult = stmt.run(req.body.name, req.body.description, req.body.team_size, req.body.apply_till, req.body.id);
 
     if (updateResult.changes && updateResult.changes === 1) {
         res.redirect("/competitions")
@@ -241,6 +253,7 @@ router.get("/add", adminRequired, function (req, res, next) {
 const schema_add = Joi.object({
     name: Joi.string().min(3).max(50).required(),
     description: Joi.string().min(3).max(1000).required(),
+    team_size: Joi.number().integer().positive().required(),
     apply_till: Joi.date().iso().required()
 });
 
@@ -248,13 +261,14 @@ const schema_add = Joi.object({
 router.post("/add", adminRequired, function (req, res, next) {
     // do validation
     const result = schema_add.validate(req.body);
+    console.log(result)
     if (result.error) {
         res.render("competitions/form", { result: { validation_error: true, display_form: true } });
         return;
     }
 
-    const stmt = db.prepare("INSERT INTO competitions (name, description, author_id, apply_till) VALUES (?, ?, ?, ?);");
-    const insertResult = stmt.run(req.body.name, req.body.description, req.user.sub, req.body.apply_till);
+    const stmt = db.prepare("INSERT INTO competitions (name, description, team_size, author_id, apply_till) VALUES (?, ?, ?, ?, ?);");
+    const insertResult = stmt.run(req.body.name, req.body.description, req.body.team_size, req.user.sub, req.body.apply_till);
 
     if (insertResult.changes && insertResult.changes === 1) {
         res.render("competitions/form", { result: { success: true } });
