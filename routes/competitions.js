@@ -150,18 +150,75 @@ router.get("/apply/:id", authRequired, function (req, res, next) {
 
         res.redirect("/competitions")
 
-    }else{
+    } else {
         const checkCompetition = db.prepare("SELECT * FROM competitions WHERE id = ?;")
-        
+
         const competitionInfo = checkCompetition.get(competitionId)
         console.log(competitionInfo)
-        
-        res.render("competitions/teamApply", { result: {competitionInfo: competitionInfo } });
+
+        const checkTeams = db.prepare("SELECT teams.name AS teamName, teams.id AS teamId,  users.name AS usernames FROM teams INNER JOIN users ON teams.id_user = users.id WHERE teams.id_competition = ?");
+
+        const teams = checkTeams.all(competitionId);
+
+        console.log(teams)
+        res.render("competitions/teamApply", { result: { competitionInfo: competitionInfo, teams: teams } });
+
     }
 
 });
 
+// POST /competitions/createTeam
+router.post("/createTeam/:competitionId", authRequired, function (req, res, next) {
 
+    const userId = req.user.sub;
+
+    const competitionId = req.params.competitionId;
+
+
+    const { teamName } = req.body;
+
+    console.log("///////////////")
+    console.log("userId " + userId)
+    console.log("competitionId " + competitionId)
+    console.log("teamName " + teamName)
+    console.log("///////////////")
+
+    const stmt = db.prepare("INSERT INTO teams (id_user, id_competition, name) VALUES (?, ?, ?);");
+    const insertResult = stmt.run(userId, competitionId, teamName);
+
+    if (insertResult.changes && insertResult.changes === 1) {
+        res.redirect(req.get('referer'));
+    } else {
+        res.status(500).json({ error: 'Failed to create team' });
+    }
+
+});
+
+router.post("/joinTeam/:teamId", authRequired, function (req, res, next) {
+    const userId = req.user.sub;
+    const teamId = req.params.teamId;
+
+    
+    const checkUserTeam = db.prepare("SELECT id FROM teams WHERE id_user = ?;");
+    const userTeam = checkUserTeam.get(userId);
+
+    if (userTeam) {
+        return res.status(400).json({ error: 'User is already a member of a team' });
+    }
+
+    const getTeamData = db.prepare("SELECT * FROM teams WHERE id = ?;");
+    const teamData = getTeamData.get(teamId);
+
+    if (!teamData) {
+        return res.status(404).json({ error: 'Team not found' });
+    }
+
+    const newTeamUser  = db.prepare("INSERT INTO teams SET id_user = ?, id_competition = ? WHERE id = ?;");
+    updateTeamUser.run(userId, teamId);
+
+    // Send a success response
+    res.status(200).json({ message: 'Joined team successfully', team: teamData });
+});
 
 
 // SCHEMA id
@@ -276,5 +333,7 @@ router.post("/add", adminRequired, function (req, res, next) {
         res.render("competitions/form", { result: { database_error: true } });
     }
 });
+
+
 
 module.exports = router;
