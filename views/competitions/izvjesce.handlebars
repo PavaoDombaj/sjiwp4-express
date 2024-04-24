@@ -1,0 +1,40 @@
+<div class="p-2 flex items-center justify-center h-screen">
+    <div class="overflow-x-auto">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold">REZULTATI NATJECANJA</h1>
+            <h1 class="text-2xl font-bold">{{natjecanje.name}}</h1>
+
+            <p class="text-lg">{{natjecanje.apply_till}}</p>
+        </div>
+
+        <table class="table w-full">
+            <!-- head -->
+            <th class="px-4 py-2">
+                <tr>
+                    <th class="px-4 py-2" class="px-4 py-2">Mjesto</th>
+                    <th class="px-4 py-2" class="px-4 py-2">Ime</th>
+                    <th class="px-4 py-2">Bodovi</th>
+                    <th class="px-4 py-2">Prijavljen</th>
+                </tr>
+                </thead>
+                <!-- body -->
+                <tbody>
+                    {{#each result.items}}
+                    <tr>
+                        <td class="px-4 py-2">{{this.position}}</td>
+                        <td class="px-4 py-2">{{this.name}}</td>
+                        <td class="px-4 py-2">{{this.score}}</td>
+                        <td x-data="{}">
+                            <span x-text="new Date('{{this.apply_time}}').toLocaleString()"></span>
+                        </td>
+                    </tr>
+                    {{#if this.showHorizontalLine}}
+                    <tr>
+                        <td colspan="4" class="border-b border-gray-400"></td>
+                    </tr>
+                    {{/if}}
+                    {{/each}}
+                </tbody>
+        </table>
+    </div>
+</div>
