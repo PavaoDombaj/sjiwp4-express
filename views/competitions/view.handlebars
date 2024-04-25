@@ -3,9 +3,10 @@
         <div>
         </div>
         <div>
-           
+
             <a href="/competitions/izvjesce/{{competitionId}}" class="btn btn-neutral btn-sm">Izvjesce</a>
         </div>
+        {{#unless team}}
         <table class="table">
             <!-- head -->
             <thead>
@@ -36,7 +37,8 @@
                             <button type="submit" class="btn btn-accent btn-sm">Upisi bodove</button>
                         </form>
                         <!-- <a href="/competitions/edit/{{this.id}}" class="btn btn-accent btn-xs">Upisi bodove</a> -->
-                        <a href="/competitions/delete/competitor/{{this.id}}" class="btn btn-error btn-sm">Obrisi prijavu</a>
+                        <a href="/competitions/delete/competitor/{{this.id}}" class="btn btn-error btn-sm">Obrisi
+                            prijavu</a>
                         {{/if}}
                     </td>
 
@@ -44,5 +46,44 @@
                 {{/each}}
             </tbody>
         </table>
+        {{/unless}}
+        {{#if team}}
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Ime</th>
+                    <th>Clanovi tima</th>
+                    <th>Bodovi</th>
+                    <th>Mogućnosti</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each result.items}}
+                <tr>
+                    <th>{{this.id_team}}</th>
+                    <td>{{this.name}}</td>
+                    <td>{{this.teamMembers}}</td>
+                    <td>{{this.score}}</td>
+                    <td class="flex flex-wrap gap-2">
+                        {{#if ../user.is_admin }}
+                        <form method="post" action="/competitions/team/updatescore/{{this.id_team}}">
+                            <input name="score"
+                                class="shadow appearance-none border rounded w-[70px] h-[36px] text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="score" type="number" placeholder="">
+                            <button type="submit" class="btn btn-accent btn-sm">Upisi bodove</button>
+                        </form>
+                        <!-- <a href="/competitions/edit/{{this.id}}" class="btn btn-accent btn-xs">Upisi bodove</a> -->
+                        <a href="/competitions/team/delete/{{this.id_team}}" class="btn btn-error btn-sm">Obrisi
+                            prijavu</a>
+                        {{/if}}
+                    </td>
+
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+        {{/if}}
     </div>
 </div>

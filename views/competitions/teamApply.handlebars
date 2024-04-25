@@ -1,51 +1,81 @@
 <div class="p-2">
-    <div class="overflow-x-auto">
-        <div>
-            <p>Naziv natjecanja: {{result.competitionInfo.name}}</p>
-            <p>Opis natjecanja: {{result.competitionInfo.description}}</p>
-            <p>ID autora: {{result.competitionInfo.author_id}}</p>
-            <p>Prijave do: {{result.competitionInfo.apply_till}}</p>
-            <p>Veličina tima: {{result.competitionInfo.team_size}}</p>
-        </div>
-        <div>
-            <form method="post" action="/competitions/createTeam/{{result.competitionInfo.id}}"
-                class="max-w-md bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 mt-5">
-                <div class="mb-4">
-                    <p class="text-gray-900 font-bold text-xl"> Kreiraj novi team: </p>
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="teamName">Team Name:</label>
-                    <input
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        id="teamName" name="teamName" type="text" placeholder="Enter team name" required>
-                </div>
-                <div class="flex items-center justify-between">
-                    <button
-                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                        type="submit">
-                        Create Team
-                    </button>
-                </div>
-            </form>
-        </div>
-        <div>
-            <h1 class="font-bold text-xl mt-4 mb-5">TIMOVI:</h1>
-            {{#if result.teams}}
-            {{#each result.teams}}
-            <div class="bg-white shadow-md rounded-md p-4 mb-4">
-                <h2 class="text-lg font-semibold">{{this.teamName}}</h2>
-                <p class="text-sm text-gray-600">Team members : {{this.usernames}}</p>
-                <form method="post" action="/competitions/joinTeam/{{this.teamId}}">
-                    <button
-                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                        type="submit">
-                        Join team!
-                    </button>
-
-                </form>
-            </div>
-            {{/each}}
-            {{else}}
-            <p>No teams available.</p>
-            {{/if}}
-        </div>
-
+  <div class="overflow-x-auto">
+    <div>
+      <p>Naziv natjecanja: {{result.competitionInfo.name}}</p>
+      <p>Opis natjecanja: {{result.competitionInfo.description}}</p>
+      <p>ID autora: {{result.competitionInfo.author_id}}</p>
+      <p>Prijave do: {{result.competitionInfo.apply_till}}</p>
+      <p>Veličina tima: {{result.competitionInfo.team_size}}</p>
     </div>
+    <div>
+      <form method="post" action="/competitions/createTeam/{{result.competitionInfo.id}}"
+        class="max-w-md bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 mt-5">
+        <div class="mb-4">
+          <p class="text-gray-900 font-bold text-xl"> Kreiraj novi team: </p>
+          <label class="block text-gray-700 text-sm font-bold mb-2" for="teamName">Team Name:</label>
+          <input
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            id="teamName" name="teamName" type="text" placeholder="Enter team name" required />
+        </div>
+        <div class="flex items-center justify-between">
+          <button
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            type="submit">
+            Create Team
+          </button>
+        </div>
+      </form>
+    </div>
+    <div>
+      <h1 class="font-bold text-xl mt-4 mb-5">TIMOVI:</h1>
+      {{#if result.allTeams}}
+      {{#each result.allTeams}}
+      <div class="bg-white shadow-md rounded-md p-4 mb-4">
+        <h2 class="text-lg font-semibold">{{this.teamName}}</h2>
+        <p class="text-sm text-gray-600">Team members :
+          {{this.usernames}}</p>
+
+        {{#if result.userTeam}}
+        {{#if (eq result.userTeam.id this.teamId)}}
+        <form method="post" action="/competitions/leaveTeam/{{result.userTeam.id}}">
+          <button
+            class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            type="submit">
+            Napusti svoj tim
+          </button>
+        </form>
+        <form method="post" action="/competitions/unregisterFromCompetition/{{result.competitionInfo.id}}">
+          <button
+            class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            type="submit">
+            Odjavi se s natjecanja
+          </button>
+        </form>
+        {{else}}
+        <form method="post" action="/competitions/joinTeam/{{this.teamId}}">
+          <button
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            type="submit">
+            Pridruži se timu
+          </button>
+        </form>
+        {{/if}}
+        {{else}}
+
+        <form method="post" action="/competitions/joinTeam/{{this.teamId}}">
+          <button
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            type="submit">
+            Pridruži se timu!
+          </button>
+        </form>
+        {{/if}}
+      </div>
+      {{/each}}
+      {{else}}
+      <p>No teams available.</p>
+      {{/if}}
+    </div>
+
+  </div>
+</div>

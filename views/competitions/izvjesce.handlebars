@@ -6,7 +6,7 @@
 
             <p class="text-lg">{{natjecanje.apply_till}}</p>
         </div>
-
+        {{#unless team}}
         <table class="table w-full">
             <!-- head -->
             <th class="px-4 py-2">
@@ -36,5 +36,37 @@
                     {{/each}}
                 </tbody>
         </table>
+        {{/unless}}
+        {{#if team}}
+        <table class="table w-full">
+            <!-- head -->
+            <th class="px-4 py-2">
+                <tr>
+                    <th class="px-4 py-2" class="px-4 py-2">Mjesto</th>
+                    <th class="px-4 py-2" class="px-4 py-2">Ime</th>
+                    <th class="px-4 py-2">Clanovi</th>
+                    <th class="px-4 py-2">Bodovi</th>
+
+                </tr>
+                </thead>
+                <!-- body -->
+                <tbody>
+                    {{#each result.items}}
+                    <tr>
+                        <td class="px-4 py-2">{{this.position}}</td>
+                        <td class="px-4 py-2">{{this.name}}</td>
+                        <td class="px-4 py-2">{{this.teamMembers}}</td>
+                        <td class="px-4 py-2">{{this.score}}</td>
+
+                    </tr>
+                    {{#if this.showHorizontalLine}}
+                    <tr>
+                        <td colspan="4" class="border-b border-gray-400"></td>
+                    </tr>
+                    {{/if}}
+                    {{/each}}
+                </tbody>
+        </table>
+        {{/if}}
     </div>
 </div>
